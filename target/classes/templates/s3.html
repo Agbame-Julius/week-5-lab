@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 File Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #232f3e 0%, #0073bb 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        .file-card {
+            transition: transform 0.2s ease;
+        }
+        .file-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .btn-aws {
+            background-color: #FF9900;
+            border-color: #FF9900;
+            color: #232f3e;
+            font-weight: 600;
+        }
+        .btn-aws:hover {
+            background-color: #ec8c04;
+            border-color: #ec8c04;
+            color: #232f3e;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #FF9900;
+            background-color: rgba(255, 153, 0, 0.05);
+        }
+        footer {
+            background-color: #232f3e;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+        .file-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .file-size {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .file-date {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        .upload-progress {
+            display: none;
+            margin-top: 1rem;
+        }
+        .filter-section {
+            padding: 1rem;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">AWS Services Portal</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/s3files}">S3 Files</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container">
+        <h1 class="display-5 fw-bold">S3 File Management</h1>
+        <p class="lead">Upload, download, and manage your files in Amazon S3</p>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- File Upload Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Upload Files to S3</h3>
+
+                    <div id="uploadArea" class="upload-area">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-muted"></i>
+                        <h5>Drag and drop files here or click to browse</h5>
+                        <p class="text-muted">Maximum file size: 50MB</p>
+                        <input type="file" id="fileInput" multiple class="d-none">
+                    </div>
+
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress mb-3">
+                            <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <p id="uploadStatus" class="text-center"></p>
+                    </div>
+
+                    <div class="text-center">
+                        <button id="uploadButton" class="btn btn-aws">
+                            <i class="fas fa-upload me-2"></i>Upload Files
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fetch Files Button -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 class="card-title mb-4">Fetch Files from S3</h3>
+                    <button id="fetchFilesButton" class="btn btn-aws btn-lg">
+                        <i class="fas fa-sync-alt me-2"></i>Fetch S3 Files
+                    </button>
+                    <div id="fetchStatus" class="mt-3 d-none">
+                        <div class="spinner-border text-primary me-2" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <span id="fetchStatusText">Fetching files...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Files List Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">Your S3 Files</h3>
+                    <div id="filesList">
+                        <!-- Files will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+                    <!-- Pagination -->
+                    <nav th:if="${totalPages > 1}" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/s3files(page=${currentPage - 1})}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item" th:each="pageNum : ${#numbers.sequence(1, totalPages)}"
+                                th:classappend="${pageNum == currentPage} ? 'active' : ''">
+                                <a class="page-link" th:href="@{/s3files(page=${pageNum})}" th:text="${pageNum}"></a>
+                            </li>
+                            <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''">
+                                <a class="page-link" th:href="@{/s3files(page=${currentPage + 1})}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Footer -->
+<footer>
+    <div class="container text-center">
+        <p>&copy; 2025 AWS Services Portal</p>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // File upload area click handler
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+        const progressBar = document.getElementById('progressBar');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const fetchFilesButton = document.getElementById('fetchFilesButton');
+        const fetchStatus = document.getElementById('fetchStatus');
+        const fetchStatusText = document.getElementById('fetchStatusText');
+        const filesList = document.getElementById('filesList');
+        const searchInput = document.getElementById('searchInput');
+        const fileTypeFilter = document.getElementById('fileTypeFilter');
+        const sortOrder = document.getElementById('sortOrder');
+
+        // Upload area click handler
+        uploadArea.addEventListener('click', function() {
+            fileInput.click();
+        });
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function() {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            fileInput.files = e.dataTransfer.files;
+            updateFileSelectStatus();
+        });
+
+        fileInput.addEventListener('change', function() {
+            updateFileSelectStatus();
+        });
+
+        function updateFileSelectStatus() {
+            if (fileInput.files.length > 0) {
+                let fileNames = [];
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    fileNames.push(fileInput.files[i].name);
+                }
+                uploadArea.innerHTML = `
+                    <i class="fas fa-check-circle fa-3x mb-3 text-success"></i>
+                    <h5>${fileInput.files.length} file(s) selected</h5>
+                    <p class="text-muted">${fileNames.join(', ')}</p>
+                `;
+            }
+        }
+
+        // Upload button handler
+        uploadButton.addEventListener('click', function() {
+            if (fileInput.files.length === 0) {
+                alert('Please select files to upload first.');
+                return;
+            }
+
+            const formData = new FormData();
+            for (let i = 0; i < fileInput.files.length; i++) {
+                formData.append('files', fileInput.files[i]);
+            }
+
+            // Show progress
+            uploadProgress.style.display = 'block';
+            progressBar.style.width = '0%';
+            uploadStatus.textContent = 'Uploading...';
+
+            // Simulate file upload progress (in a real app, you'd use AJAX)
+            let progress = 0;
+            const interval = setInterval(function() {
+                progress += 5;
+                progressBar.style.width = progress + '%';
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    uploadStatus.textContent = 'Upload complete! Refreshing...';
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 1500);
+                }
+            }, 200);
+
+            // AJAX upload
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.error || "Unknown error");
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    uploadStatus.textContent = data.message || 'Upload complete!';
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                })
+                .catch(error => {
+                    uploadStatus.textContent = 'Upload failed: ' + error.message;
+                    progressBar.classList.remove('bg-success');
+                    progressBar.classList.add('bg-danger');
+                });
+        });
+
+        // Fetch files button handler
+        fetchFilesButton.addEventListener('click', fetchS3Files);
+
+        function fetchS3Files() {
+            // Show loading state
+            fetchStatus.classList.remove('d-none');
+            fetchStatusText.textContent = 'Fetching files...';
+            fetchFilesButton.disabled = true;
+
+            // Make API call to fetch S3 files
+            fetch('/files')
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(errorData => {
+                            throw new Error(errorData.message || "Failed to fetch files");
+                        });
+                    }
+                    return response.json(); // Ensure the response is parsed as JSON
+                })
+                .then(data => {
+                    console.log(data); // Log the response to debug
+                    renderFileList(data);
+                    fetchStatusText.textContent = 'Files fetched successfully!';
+                    setTimeout(() => {
+                        fetchStatus.classList.add('d-none');
+                    }, 1500);
+                })
+                .catch(error => {
+                    console.error('Error fetching files:', error); // Log the error
+                    fetchStatusText.textContent = 'Error: ' + error.message;
+                    fetchStatus.classList.add('text-danger');
+                })
+                .finally(() => {
+                    fetchFilesButton.disabled = false;
+                });
+        }
+
+        function renderFileList(files) {
+            // Clear existing content
+            filesList.innerHTML = '';
+
+            if (!files || files.length === 0) {
+                // Show empty state
+                filesList.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No files found in your S3 bucket</h5>
+                        <p>Upload your first file using the upload section above.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Create file cards grid
+            const fileGrid = document.createElement('div');
+            fileGrid.className = 'row row-cols-1 row-cols-md-3 g-4';
+
+            // Add file cards
+            files.forEach(file => {
+                const fileCard = createFileCard(file);
+                fileGrid.appendChild(fileCard);
+            });
+
+            filesList.appendChild(fileGrid);
+        }
+
+        function createFileCard(file) {
+            // Determine file icon based on file type
+            let fileIcon = 'fas fa-file text-secondary';
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+            if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                fileIcon = 'fas fa-file-image text-primary';
+            } else if (fileExtension === 'pdf') {
+                fileIcon = 'fas fa-file-pdf text-danger';
+            } else if (['doc', 'docx'].includes(fileExtension)) {
+                fileIcon = 'fas fa-file-word text-info';
+            } else if (['xls', 'xlsx'].includes(fileExtension)) {
+                fileIcon = 'fas fa-file-excel text-success';
+            }
+
+            // Format date
+            const uploadDate = new Date(file.uploadDate);
+            const formattedDate = uploadDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+
+            // Create column element
+            const colDiv = document.createElement('div');
+            colDiv.className = 'col';
+
+            // Build file card HTML
+            colDiv.innerHTML = `<div class="card h-100 file-card">
+            <div class="card-body text-center">
+                ${['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension) ?
+                `<img src="${file.url}" alt="${file.name}" class="img-fluid mb-3" style="max-height: 150px;">` :
+                `<i class="${fileIcon} file-icon"></i>`
+            }
+                <h5 class="card-title text-truncate">${file.name}</h5>
+                <p class="card-text file-size">${file.size} bytes</p>
+                <p class="card-text file-date">${formattedDate}</p>
+            </div>
+        </div>
+    `;
+            return colDiv;
+        }
+
+    });
+</script>
+</body>
+</html>

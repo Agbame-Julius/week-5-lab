@@ -1,0 +1,4 @@
+lap\project\ECS_Project\config\AwsConfig.class
+lap\project\ECS_Project\EcsProjectApplication.class
+lap\project\ECS_Project\controller\HomePageController.class
+lap\project\ECS_Project\service\S3Service.class

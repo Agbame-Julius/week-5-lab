@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AWS Services - Home</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .service-card {
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .service-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #232f3e 0%, #0073bb 100%);
+            color: white;
+            padding: 4rem 0;
+            margin-bottom: 2rem;
+        }
+        .aws-icon {
+            width: 50px;
+            margin-bottom: 1rem;
+        }
+        .btn-aws {
+            background-color: #FF9900;
+            border-color: #FF9900;
+            color: #232f3e;
+            font-weight: 600;
+        }
+        .btn-aws:hover {
+            background-color: #ec8c04;
+            border-color: #ec8c04;
+            color: #232f3e;
+        }
+        footer {
+            background-color: #232f3e;
+            color: white;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="/">AWS Services Portal</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link active" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/s3files}">S3 Files</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-4 fw-bold">AWS Container Services</h1>
+        <p class="lead">Learn about ECS and ECR services and manage your S3 files</p>
+        <a th:href="@{/s3files}" class="btn btn-light btn-lg mt-3">Manage S3 Files</a>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container">
+    <!-- ECS and ECR Information -->
+    <div class="row mb-5">
+        <div class="col-md-6 mb-4">
+            <div class="card service-card">
+                <div class="card-body text-center p-4">
+                    <h2 class="card-title">Amazon ECS</h2>
+                    <div class="text-center mb-3">
+                        <img src="/api/placeholder/100/100" alt="ECS Icon" class="aws-icon">
+                    </div>
+                    <h5 class="text-muted mb-3">Elastic Container Service</h5>
+                    <p class="card-text">
+                        Amazon Elastic Container Service (ECS) is a fully managed container orchestration service that makes it easy to deploy, manage, and scale containerized applications.
+                    </p>
+                    <div class="mt-4">
+                        <h6 class="fw-bold">Key Features:</h6>
+                        <ul class="text-start">
+                            <li>Fully managed container orchestration</li>
+                            <li>AWS Fargate integration for serverless compute</li>
+                            <li>Deep integration with AWS services</li>
+                            <li>Simplified cluster management</li>
+                            <li>Automated container deployment</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card service-card">
+                <div class="card-body text-center p-4">
+                    <h2 class="card-title">Amazon ECR</h2>
+                    <div class="text-center mb-3">
+                        <img src="/api/placeholder/100/100" alt="ECR Icon" class="aws-icon">
+                    </div>
+                    <h5 class="text-muted mb-3">Elastic Container Registry</h5>
+                    <p class="card-text">
+                        Amazon Elastic Container Registry (ECR) is a fully managed container registry that makes it easy to store, manage, and deploy container images.
+                    </p>
+                    <div class="mt-4">
+                        <h6 class="fw-bold">Key Features:</h6>
+                        <ul class="text-start">
+                            <li>Secure private container image storage</li>
+                            <li>Integrated with ECS and EKS</li>
+                            <li>Lifecycle policies to manage images</li>
+                            <li>Image scanning for vulnerabilities</li>
+                            <li>Cross-region replication</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ECS and ECR Workflow -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">How ECS and ECR Work Together</h3>
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <h5>1. Build & Push</h5>
+                                <p>Build your container images and push them to Amazon ECR</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <h5>2. Define Tasks</h5>
+                                <p>Define ECS task definitions referencing your ECR images</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="p-3 bg-light rounded">
+                                <h5>3. Deploy & Scale</h5>
+                                <p>Deploy services on ECS and scale automatically</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- S3 Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card text-center">
+                <div class="card-body p-5">
+                    <h2 class="card-title mb-4">Amazon S3 File Management</h2>
+                    <p class="lead mb-4">Upload and manage your files with Amazon Simple Storage Service</p>
+                    <a th:href="@{/s3files}" class="btn btn-aws btn-lg">Manage Your S3 Files</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer>
+    <div class="container text-center">
+        <p>&copy; 2025 AWS Services Portal</p>
+    </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
