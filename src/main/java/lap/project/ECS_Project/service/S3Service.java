@@ -15,8 +15,7 @@ import java.util.*;
 
 @Service
 public class S3Service {
-    @Value("${AWS_S3_BUCKET_NAME}")
-    private String bucketName;
+    private String bucketName = "my-file-bucket-for-project";
 
     @Autowired
     private AmazonS3 amazonS3;
